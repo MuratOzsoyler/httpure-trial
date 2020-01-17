@@ -6,7 +6,7 @@ import Control.Monad.Logger.Trans (class MonadLogger, info, runLoggerT)
 import Control.Monad.Reader (class MonadAsk, ask, asks, runReaderT)
 import Data.Log.Formatter.Pretty (prettyFormatter)
 import Data.Log.Message (Message)
-import Data.Log.Tag (fromArray, intTag, tag)
+import Data.Log.Tag (empty, fromArray, intTag, tag)
 import Data.Map (toUnfoldable)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (unwrap)
@@ -15,7 +15,7 @@ import Effect (Effect)
 import Effect.Aff.Class (class MonadAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Class.Console as Console
-import HTTPure (Request, Response, ResponseM, fullPath, notFound, serve')
+import HTTPure (Request, Response, ResponseM, fullPath, notFound, ok, serve')
 import Node.HTTP (ListenOptions)
 
 type ServerEnv = { port :: Int }
@@ -77,8 +77,13 @@ requestEnv :: forall m. Monad m => ServerEnv -> Request -> m RequestEnv
 requestEnv env request = pure { }
     
 routeRequest :: forall m. MonadLogger m => MonadAff m => Request -> m Response
-routeRequest = case _ of
-    _ -> notFound
+routeRequest request = do
+    info empty "Request started" 
+    response <- case request of
+        {path: ["hello"]} -> ok "Hello darling!"
+        _ -> notFound
+    info empty "Request started"
+    pure response
 
 onServerStart :: forall m. MonadEffect m => Int -> m Unit
 onServerStart port = do
